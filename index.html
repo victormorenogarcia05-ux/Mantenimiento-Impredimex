@@ -1713,8 +1713,23 @@ function doLogin(){
   if(!nomina){ appAlert('Ingresa tu número de nómina'); return; }
   if(!pass)  { appAlert('Ingresa tu contraseña'); return; }
 
-  // Determinar rol por contraseña
-  const role = PASSWORDS[pass];
+  // Buscar en catálogo (se necesita ANTES de resolver el rol, para el PIN individual)
+  const cat = (DB && DB.personal) ? DB.personal : CATALOG_PERSONAL;
+  const persona = cat.find(function(p){ return p.nomina.toString()===nomina; });
+
+  // SPEC-036: PIN individual de 4 dígitos por persona. Si esta nómina tiene
+  // un PIN propio asignado, debe coincidir exactamente con SU pin — la
+  // contraseña compartida del rol ya NO le funciona (evita que el PIN
+  // pierda sentido si la contraseña general sigue abriendo la puerta).
+  // Si no tiene PIN asignado, sigue entrando con la contraseña compartida,
+  // como hasta ahora.
+  var role;
+  if(persona && persona.pin){
+    role = (pass === persona.pin) ? (persona.rol || 'tecnico') : undefined;
+  } else {
+    role = PASSWORDS[pass];
+  }
+
   if(!role){
     // Shake animation on password field
     var pf = document.getElementById('login-pass');
@@ -1724,10 +1739,6 @@ function doLogin(){
     appAlert('Contraseña incorrecta');
     return;
   }
-
-  // Buscar en catálogo
-  const cat = (DB && DB.personal) ? DB.personal : CATALOG_PERSONAL;
-  const persona = cat.find(function(p){ return p.nomina.toString()===nomina; });
 
   if(persona && persona.estatus==='baja'){
     appAlert('Esta nómina está registrada como baja. Contacta a Recursos Humanos.');
@@ -6322,7 +6333,7 @@ const CATALOG_PERSONAL = [
   {nomina:'329',nombre:'ANTONIO REYES FELIX',puesto:'OPERADOR DE GRABADOS',depto:'PREPRENSA',rol:'ninguno',turno:'',estatus:'activo',obs:''},
   {nomina:'489',nombre:'SOSA BAUTISTA ADRIAN GUADALUPE',puesto:'IMPRESOR DE ETIQUETAS FLEXOGRAFIA',depto:'FLEXOGRAFÍA',rol:'solicitante',turno:'2',estatus:'activo',obs:''},
   {nomina:'514',nombre:'MORELOS GUERRERO MARIA JOSEFA',puesto:'AUXILIAR DE INTENDENCIA',depto:'RECURSOS HUMANOS',rol:'ninguno',turno:'',estatus:'activo',obs:''},
-  {nomina:'638',nombre:'VIDAL DIAZ MANUEL',puesto:'TÉCNICO DE MANTENIMIENTO',depto:'MANTENIMIENTO',rol:'tecnico',turno:'1',estatus:'activo',obs:''},
+  {nomina:'638',pin:'6381',nombre:'VIDAL DIAZ MANUEL',puesto:'TÉCNICO DE MANTENIMIENTO',depto:'MANTENIMIENTO',rol:'tecnico',turno:'1',estatus:'activo',obs:''},
   {nomina:'672',nombre:'MOTA SAUL',puesto:'CHOFER',depto:'LOGÍSTICA',rol:'ninguno',turno:'',estatus:'activo',obs:''},
   {nomina:'736',nombre:'RIOS MORENO EDUARDO',puesto:'IGUALADOR DE TINTAS',depto:'TINTAS',rol:'solicitante',turno:'1',estatus:'activo',obs:''},
   {nomina:'769',nombre:'DEL ANGEL HERNANDEZ PAULA',puesto:'REVISOR DE ETIQUETAS',depto:'ACONDICIONADO',rol:'solicitante',turno:'1',estatus:'activo',obs:''},
@@ -6336,14 +6347,14 @@ const CATALOG_PERSONAL = [
   {nomina:'885',nombre:'MAGALLANES LOPEZ ANGEL GAMALIEL',puesto:'JEFE DE IMPRESIÓN DIGITAL',depto:'DIGITAL',rol:'supervisor',turno:'',estatus:'activo',obs:''},
   {nomina:'1010',nombre:'DELGADO ALVAREZ ANA MARIA',puesto:'PEGADOR DE ETIQUETAS',depto:'ACONDICIONADO',rol:'solicitante',turno:'1',estatus:'activo',obs:''},
   {nomina:'1015',nombre:'VILLEGAS MORQUECHO KARLA',puesto:'DISEÑADOR',depto:'PREPRENSA',rol:'solicitante',turno:'',estatus:'activo',obs:''},
-  {nomina:'1049',nombre:'CORREA MIRAMONTES FRANCISCO JAVIER',puesto:'INGENIERO DE MANTENIMIENTO',depto:'MANTENIMIENTO',rol:'tecnico',turno:'1',estatus:'activo',obs:''},
+  {nomina:'1049',pin:'1305',nombre:'CORREA MIRAMONTES FRANCISCO JAVIER',puesto:'INGENIERO DE MANTENIMIENTO',depto:'MANTENIMIENTO',rol:'tecnico',turno:'1',estatus:'activo',obs:''},
   {nomina:'1113',nombre:'OROZCO MACIAS ANGEL NOE',puesto:'ESPECIALISTA DE NÓMINAS',depto:'ADMINISTRACIÓN',rol:'ninguno',turno:'',estatus:'activo',obs:''},
   {nomina:'1114',nombre:'RIVERA JIMENEZ VIRIDIANA MONSERRAT',puesto:'ESPECIALISTA DE COBRANZA',depto:'ADMINISTRACIÓN',rol:'ninguno',turno:'',estatus:'activo',obs:''},
   {nomina:'1219',nombre:'DIAZ HERNANDEZ ANA LAURA',puesto:'REVISOR DE ETIQUETAS',depto:'ACONDICIONADO',rol:'solicitante',turno:'1',estatus:'activo',obs:''},
   {nomina:'1227',nombre:'CALDERON TOPETE ANGEL',puesto:'GERENTE COMERCIAL',depto:'VENTAS',rol:'ninguno',turno:'',estatus:'activo',obs:''},
   {nomina:'1237',nombre:'CABRERA MARTINEZ RICARDO',puesto:'JEFE DE MANTENIMIENTO',depto:'MANTENIMIENTO',rol:'supervisor',turno:'',estatus:'activo',obs:''},
   {nomina:'1320',nombre:'CHAVEZ CIBRIAN ANA ROSA',puesto:'AUDITOR DE CALIDAD',depto:'CALIDAD',rol:'solicitante',turno:'',estatus:'activo',obs:''},
-  {nomina:'1332',nombre:'MONTES DE OCA VELA ANTONIO DE JESUS',puesto:'TÉCNICO DE MANTENIMIENTO',depto:'MANTENIMIENTO',rol:'tecnico',turno:'2',estatus:'activo',obs:''},
+  {nomina:'1332',pin:'1332',nombre:'MONTES DE OCA VELA ANTONIO DE JESUS',puesto:'TÉCNICO DE MANTENIMIENTO',depto:'MANTENIMIENTO',rol:'tecnico',turno:'2',estatus:'activo',obs:''},
   {nomina:'1479',nombre:'GONZALEZ LOPEZ ELIZABETH',puesto:'JEFE DE CONTABILIDAD E IMPUESTOS',depto:'ADMINISTRACIÓN',rol:'ninguno',turno:'',estatus:'activo',obs:''},
   {nomina:'1502',nombre:'SANTIAGO TICANTE ERICK ROMAN',puesto:'LAMINADOR DE PELÍCULA PLÁSTICA',depto:'FLEXOGRAFÍA',rol:'solicitante',turno:'1',estatus:'activo',obs:''},
   {nomina:'1504',nombre:'CERVANTES DIAZ BERNARDO',puesto:'IMPRESOR DE ETIQUETAS ROTOGRABADO',depto:'ROTOGRABADO',rol:'solicitante',turno:'2',estatus:'activo',obs:''},
@@ -6359,7 +6370,7 @@ const CATALOG_PERSONAL = [
   {nomina:'1815',nombre:'BELTRAN GONZALEZ NALLELY KARINA',puesto:'IGUALADOR DE TINTAS',depto:'TINTAS',rol:'solicitante',turno:'1',estatus:'activo',obs:''},
   {nomina:'1824',nombre:'MORALES JIMENEZ SERGIO ARTURO',puesto:'ALMACENISTA',depto:'LOGÍSTICA',rol:'ninguno',turno:'',estatus:'activo',obs:''},
   {nomina:'1825',nombre:'NAVARRO CASTILLO RUBEN DE JESUS',puesto:'AUDITOR DE CALIDAD',depto:'CALIDAD',rol:'solicitante',turno:'',estatus:'activo',obs:''},
-  {nomina:'1827',nombre:'GOMEZ JIMENEZ JOSE IVAN',puesto:'INGENIERO DE MANTENIMIENTO',depto:'MANTENIMIENTO',rol:'tecnico',turno:'1',estatus:'activo',obs:''},
+  {nomina:'1827',pin:'2718',nombre:'GOMEZ JIMENEZ JOSE IVAN',puesto:'INGENIERO DE MANTENIMIENTO',depto:'MANTENIMIENTO',rol:'tecnico',turno:'1',estatus:'activo',obs:''},
   {nomina:'1853',nombre:'JULIAN IGLESIAS RODOLFO',puesto:'SUPERVISOR DE ACONDICIONADO',depto:'ACONDICIONADO',rol:'supervisor',turno:'',estatus:'activo',obs:''},
   {nomina:'1869',nombre:'RAMOS LOPEZ JAVIER SANTIAGO',puesto:'IMPRESOR DE ETIQUETAS ROTOGRABADO',depto:'ROTOGRABADO',rol:'solicitante',turno:'1',estatus:'activo',obs:''},
   {nomina:'1896',nombre:'ARMENTA HERNANDEZ ALMA YADIRA',puesto:'AUDITOR DE CALIDAD',depto:'CALIDAD',rol:'solicitante',turno:'',estatus:'activo',obs:''},
@@ -6372,7 +6383,7 @@ const CATALOG_PERSONAL = [
   {nomina:'1983',nombre:'CAMPOS HUERTA JANETTE GEORGINA',puesto:'RECEPCIONISTA',depto:'ADMINISTRACIÓN',rol:'ninguno',turno:'',estatus:'activo',obs:''},
   {nomina:'2014',nombre:'ARTEAGA SANTOS PEDRO GUADALUPE',puesto:'EMPACADOR',depto:'ACONDICIONADO',rol:'solicitante',turno:'1',estatus:'activo',obs:''},
   {nomina:'2034',nombre:'GARCIA VAZQUEZ ROSA',puesto:'AUDITOR DE CALIDAD',depto:'CALIDAD',rol:'tecnico',turno:'2',estatus:'activo',obs:''},
-  {nomina:'2047',nombre:'SANDOVAL MARTINEZ ENRIQUE',puesto:'AUXILIAR DE MANTENIMIENTO',depto:'MANTENIMIENTO',rol:'tecnico',turno:'1',estatus:'activo',obs:''},
+  {nomina:'2047',pin:'2047',nombre:'SANDOVAL MARTINEZ ENRIQUE',puesto:'AUXILIAR DE MANTENIMIENTO',depto:'MANTENIMIENTO',rol:'tecnico',turno:'1',estatus:'activo',obs:''},
   {nomina:'2058',nombre:'MORENO GARCIA VICTOR',puesto:'GERENTE DE OPERACIONES',depto:'OPERACIONES',rol:'supervisor',turno:'',estatus:'activo',obs:''},
   {nomina:'2068',nombre:'CARDENAS PEREZ DANIEL',puesto:'PLANEADOR Y PROGRAMADOR DE LA PRODUCCIÓN',depto:'OPERACIONES',rol:'solicitante',turno:'',estatus:'activo',obs:''},
   {nomina:'2078',nombre:'CAMACHO GUERRERO VIANNEY MONTSERRAT',puesto:'CONTADOR GENERAL JUNIOR',depto:'ADMINISTRACIÓN',rol:'ninguno',turno:'',estatus:'activo',obs:''},
@@ -6405,7 +6416,7 @@ const CATALOG_PERSONAL = [
   {nomina:'2347',nombre:'BEJAR ROBLES ROSA',puesto:'AUXILIAR DE INTENDENCIA',depto:'RECURSOS HUMANOS',rol:'ninguno',turno:'',estatus:'activo',obs:''},
   {nomina:'2354',nombre:'RODRIGUEZ MARTINEZ PAOLA ALEJANDRA',puesto:'REVISOR DE ETIQUETAS',depto:'ACONDICIONADO',rol:'solicitante',turno:'2',estatus:'activo',obs:''},
   {nomina:'2357',nombre:'GONZALEZ MORALES CRISTIAN RUBEN',puesto:'ALMACENISTA',depto:'LOGÍSTICA',rol:'ninguno',turno:'',estatus:'activo',obs:''},
-  {nomina:'2366',nombre:'VARGAS REYES ALDHER EDUARDO',puesto:'INGENIERO DE MANTENIMIENTO',depto:'MANTENIMIENTO',rol:'tecnico',turno:'2',estatus:'activo',obs:''},
+  {nomina:'2366',pin:'8415',nombre:'VARGAS REYES ALDHER EDUARDO',puesto:'INGENIERO DE MANTENIMIENTO',depto:'MANTENIMIENTO',rol:'tecnico',turno:'2',estatus:'activo',obs:''},
   {nomina:'2369',nombre:'AGUILAR SALINAS BRENDA',puesto:'CORTADOR DE ETIQUETAS',depto:'ACONDICIONADO',rol:'solicitante',turno:'1',estatus:'activo',obs:''},
   {nomina:'2370',nombre:'LEMUS SANCHEZ DALIA GUADALUPE',puesto:'ESPECIALISTA DE ATRACCIÓN DE TALENTO',depto:'RECURSOS HUMANOS',rol:'ninguno',turno:'',estatus:'activo',obs:''},
   {nomina:'2377',nombre:'AVALOS MONREAL JOSE DAVID',puesto:'SUPERVISOR DE ACONDICIONADO',depto:'ACONDICIONADO',rol:'supervisor',turno:'',estatus:'activo',obs:''},
@@ -6694,6 +6705,7 @@ function verPersona(nomina){
     <div class="field-row"><div class="field-lbl">Departamento</div><div class="field-val">${p.depto}</div></div>
     <div class="field-row"><div class="field-lbl">Rol en la app</div><div class="field-val">${rolLabel[p.rol]||p.rol}</div></div>
     <div class="field-row"><div class="field-lbl">Turno</div><div class="field-val">${p.turno?'Turno '+p.turno:'No aplica'}</div></div>
+    <div class="field-row"><div class="field-lbl">PIN individual</div><div class="field-val">${p.pin?p.pin:'Sin asignar — usa la contraseña compartida de su rol'}</div></div>
     ${p.obs?`<div class="field-row"><div class="field-lbl">Observaciones</div><div class="field-val" style="font-weight:400;font-size:13px">${p.obs}</div></div>`:''}
     <div style="padding:16px;display:flex;flex-direction:column;gap:8px">
       <button class="btn btn-orange btn-block" onclick="abrirFormPersonal('${p.nomina}')">
@@ -6724,6 +6736,7 @@ function abrirFormPersonal(nomina){
     document.getElementById('frm-depto').value = p.depto;
     document.getElementById('frm-rol').value = p.rol;
     document.getElementById('frm-turno').value = p.turno||'';
+    document.getElementById('frm-pin').value = p.pin||'';
     document.getElementById('frm-estatus').value = p.estatus;
     document.getElementById('frm-obs').value = p.obs||'';
   } else {
@@ -6734,6 +6747,7 @@ function abrirFormPersonal(nomina){
     document.getElementById('frm-depto').value = '';
     document.getElementById('frm-rol').value = 'solicitante';
     document.getElementById('frm-turno').value = '';
+    document.getElementById('frm-pin').value = '';
     document.getElementById('frm-estatus').value = 'activo';
     document.getElementById('frm-obs').value = '';
   }
@@ -6747,18 +6761,21 @@ function guardarPersona(){
   const depto  = document.getElementById('frm-depto').value.trim();
   const rol    = document.getElementById('frm-rol').value;
   const turno  = document.getElementById('frm-turno').value;
+  const pin    = document.getElementById('frm-pin').value.trim();
   const estatus= document.getElementById('frm-estatus').value;
   const obs    = document.getElementById('frm-obs').value.trim();
   if(!nomina||!nombre||!puesto||!depto){appAlert('Nómina, nombre, puesto y departamento son obligatorios.');return;}
+  // SPEC-036: el PIN, si se captura, debe ser de exactamente 4 dígitos
+  if(pin && !/^\d{4}$/.test(pin)){ appAlert('El PIN debe ser de exactamente 4 dígitos (solo números).'); return; }
   if(personalEditar){
     const idx = DB.personal.findIndex(x=>x.nomina===personalEditar);
-    if(idx>=0) DB.personal[idx]={...DB.personal[idx],nombre,puesto,depto,rol,turno,estatus,obs};
+    if(idx>=0) DB.personal[idx]={...DB.personal[idx],nombre,puesto,depto,rol,turno,pin,estatus,obs};
     saveDB();
     appAlert('✓ Datos actualizados correctamente.');
     verPersona(personalEditar);
   } else {
     if(DB.personal.find(x=>x.nomina===nomina)){appAlert('Ya existe un empleado con esa nómina.');return;}
-    DB.personal.push({nomina,nombre,puesto,depto,rol,turno,estatus,obs});
+    DB.personal.push({nomina,nombre,puesto,depto,rol,turno,pin,estatus,obs});
     saveDB();
     document.getElementById('frm-nomina').disabled = false;
     appAlert('✓ Empleado dado de alta correctamente.');
@@ -7157,6 +7174,11 @@ function renderAdmPerfil(){
           <option value="">— No aplica —</option>
           <option value="1">Turno 1</option><option value="2">Turno 2</option><option value="3">Turno 3</option>
         </select>
+      </div>
+      <div class="field-row">
+        <div class="field-lbl">PIN individual (opcional)</div>
+        <input class="field-input" id="frm-pin" type="text" inputmode="numeric" maxlength="4" placeholder="4 dígitos, ej. 6381">
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">Si se asigna, esta persona entra con su nómina + este PIN, en vez de la contraseña compartida de su rol.</div>
       </div>
       <div class="field-row">
         <div class="field-lbl">Estatus</div>
